@@ -1,0 +1,692 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>StreetGuard — AI-Powered Parametric Insurance</title>
+<script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
+<script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
+<script src="https://unpkg.com/prop-types@15/prop-types.min.js" crossorigin></script>
+<script src="https://unpkg.com/recharts@2.15.4/umd/Recharts.js" crossorigin></script>
+<script src="https://unpkg.com/@babel/standalone/babel.min.js" crossorigin></script>
+<script src="https://cdn.tailwindcss.com"></script>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet"/>
+<script>
+tailwind.config = {
+  theme: { extend: { colors: {
+    navy: '#0A0F1E', primary: '#00D4AA', coral: '#FF4757',
+    amber: '#FFB800', success: '#00FF88',
+    'navy-light': '#111827'
+  }, fontFamily: {
+    display: ['Outfit', 'system-ui', 'sans-serif'],
+    body: ['Inter', 'system-ui', 'sans-serif']
+  }}}
+}
+</script>
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+body { background:#0A0F1E; color:#fff; font-family:'Inter',system-ui,sans-serif; }
+.glass-card { background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.1); border-radius:16px; }
+.grid-bg { background-image: linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px); background-size: 60px 60px; }
+@keyframes pulse-glow { 0%,100%{box-shadow:0 0 20px rgba(0,255,136,0.3),0 0 60px rgba(0,255,136,0.1)} 50%{box-shadow:0 0 40px rgba(0,255,136,0.5),0 0 80px rgba(0,255,136,0.2)} }
+@keyframes pulse-glow-red { 0%,100%{box-shadow:0 0 20px rgba(255,71,87,0.3),0 0 60px rgba(255,71,87,0.1)} 50%{box-shadow:0 0 40px rgba(255,71,87,0.5),0 0 80px rgba(255,71,87,0.2)} }
+.orb-normal { animation: pulse-glow 3s ease-in-out infinite; }
+.orb-storm { animation: pulse-glow-red 1.5s ease-in-out infinite; }
+@keyframes fade-in-up { from{opacity:0;transform:translateY(20px)} to{opacity:1;transform:translateY(0)} }
+.animate-in { animation: fade-in-up 0.5s ease-out forwards; }
+@keyframes slide-down { from{opacity:0;transform:translateY(-20px)} to{opacity:1;transform:translateY(0)} }
+.slide-down { animation: slide-down 0.4s ease-out forwards; }
+.scrollbar-hide::-webkit-scrollbar { display:none; }
+.scrollbar-hide { -ms-overflow-style:none; scrollbar-width:none; }
+</style>
+</head>
+<body>
+<div style="position:fixed;bottom:14px;left:50%;transform:translateX(-50%);z-index:9999;background:rgba(10,15,30,.92);border:1px solid rgba(255,255,255,.15);color:rgba(255,255,255,.75);font:12px Inter,system-ui,sans-serif;padding:8px 14px;border-radius:999px;white-space:nowrap">
+Hackathon prototype · all data simulated · <a href="../" style="color:#00D4AA">back to portfolio</a></div>
+<div id="root"></div>
+<script type="text/babel">
+const { useState, useEffect, useCallback, useRef } = React;
+const { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } = Recharts;
+
+// ─── ICONS (SVG inline) ───
+const ShieldIcon = ({size=24,color='currentColor'}) => <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>;
+const SunIcon = ({size=24,color='currentColor'}) => <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></svg>;
+const CloudRainIcon = ({size=24,color='currentColor'}) => <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M20 17.58A5 5 0 0018 8h-1.26A8 8 0 104 16.25"/><path d="M8 16v2M8 20v1M12 18v2M12 22v1M16 16v2M16 20v1"/></svg>;
+const BrainIcon = ({size=24,color='currentColor'}) => <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M9.5 2A5.5 5.5 0 005 7.5c0 .88.2 1.73.6 2.5H5a4 4 0 00-.83 7.92A6.5 6.5 0 0012 22a6.5 6.5 0 007.83-4.08A4 4 0 0019 10h-.6c.4-.77.6-1.62.6-2.5A5.5 5.5 0 0014.5 2 5.5 5.5 0 0012 3.17 5.5 5.5 0 009.5 2z"/><path d="M12 2v20"/></svg>;
+const MapPinIcon = ({size=24,color='currentColor'}) => <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0116 0z"/><circle cx="12" cy="10" r="3"/></svg>;
+const WalletIcon = ({size=24,color='currentColor'}) => <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M21 12V7H5a2 2 0 010-4h14v4"/><path d="M3 5v14a2 2 0 002 2h16v-5"/><path d="M18 12a2 2 0 000 4h4v-4z"/></svg>;
+const CheckIcon = ({size=24,color='currentColor'}) => <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>;
+const ArrowLeftIcon = ({size=24,color='currentColor'}) => <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>;
+const ArrowRightIcon = ({size=24,color='currentColor'}) => <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>;
+const BellIcon = ({size=24,color='currentColor'}) => <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9M13.73 21a2 2 0 01-3.46 0"/></svg>;
+const WindIcon = ({size=24,color='currentColor'}) => <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M17.7 7.7A2.5 2.5 0 0119 12H2M9.6 4.6A2 2 0 0111 8H2M12.6 19.4A2 2 0 0014 16H2"/></svg>;
+const ZapIcon = ({size=24,color='currentColor'}) => <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>;
+const CloudLightningIcon = ({size=24,color='currentColor'}) => <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M19 16.9A5 5 0 0018 7h-1.26a8 8 0 10-11.62 9"/><polyline points="13 11 9 17 15 17 11 23"/></svg>;
+const FileTextIcon = ({size=24,color='currentColor'}) => <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>;
+const TruckIcon = ({size=24,color='currentColor'}) => <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><rect x="1" y="3" width="15" height="13"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>;
+const BikeIcon = ({size=24,color='currentColor'}) => <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="18.5" cy="17.5" r="3.5"/><circle cx="5.5" cy="17.5" r="3.5"/><circle cx="15" cy="5" r="1"/><path d="M12 17.5V14l-3-3 4-3 2 3h2"/></svg>;
+const PackageIcon = ({size=24,color='currentColor'}) => <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><line x1="16.5" y1="9.4" x2="7.5" y2="4.21"/><path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>;
+const ShoppingBagIcon = ({size=24,color='currentColor'}) => <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4zM3 6h18"/><path d="M16 10a4 4 0 01-8 0"/></svg>;
+const UtensilsIcon = ({size=24,color='currentColor'}) => <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 002-2V2M7 2v20M21 15V2v0a5 5 0 00-5 5v6c0 1.1.9 2 2 2h3zm0 0v7"/></svg>;
+
+// ─── APP ───
+function App() {
+  const [page, setPage] = useState(window.location.hash.slice(1) || 'landing');
+  useEffect(() => {
+    const handler = () => setPage(window.location.hash.slice(1) || 'landing');
+    window.addEventListener('hashchange', handler);
+    return () => window.removeEventListener('hashchange', handler);
+  }, []);
+  const navigate = (p) => { window.location.hash = p; };
+  if (page === 'onboard') return <Onboarding navigate={navigate}/>;
+  if (page === 'dashboard') return <Dashboard navigate={navigate}/>;
+  return <Landing navigate={navigate}/>;
+}
+
+// ─── NAVBAR ───
+function Navbar({navigate, transparent=true}) {
+  return (
+    <nav className={`sticky top-0 z-50 ${transparent ? 'bg-navy/80 backdrop-blur-md' : 'bg-navy'} border-b border-white/10`}>
+      <div className="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
+        <div className="flex items-center gap-2 cursor-pointer" onClick={()=>navigate('landing')}>
+          <ShieldIcon size={28} color="#00D4AA"/>
+          <span className="font-display font-bold text-xl">StreetGuard</span>
+        </div>
+        <div className="hidden md:flex items-center gap-8 text-sm text-white/60">
+          <a href="#landing" className="hover:text-white transition">How It Works</a>
+          <a href="#landing" className="hover:text-white transition">Features</a>
+          <a href="#landing" className="hover:text-white transition">Pricing</a>
+        </div>
+        <button onClick={()=>navigate('onboard')} className="bg-primary text-navy font-semibold text-sm px-5 py-2 rounded-full hover:bg-primary/90 transition">
+          Get Protected →
+        </button>
+      </div>
+    </nav>
+  );
+}
+
+// ─── LANDING PAGE ───
+function Landing({navigate}) {
+  return (
+    <div className="min-h-screen bg-navy">
+      <Navbar navigate={navigate}/>
+      {/* Hero */}
+      <section className="grid-bg relative py-24 md:py-32 text-center px-6">
+        <div className="max-w-3xl mx-auto">
+          <div className="inline-flex items-center gap-2 glass-card px-4 py-2 rounded-full text-sm text-white/80 mb-8">
+            <span className="w-2 h-2 rounded-full bg-primary inline-block"></span>
+            AI-Powered Parametric Insurance
+          </div>
+          <h1 className="font-display font-extrabold text-4xl md:text-6xl leading-tight mb-6">
+            Don't Let The <span className="text-primary">Rain</span> Steal Your Earnings
+          </h1>
+          <p className="text-white/60 text-lg mb-4">When weather strikes, StreetGuard pays. Automatically.</p>
+          <p className="text-white/40 text-sm mb-10">Built for India's 7.7 million delivery partners.</p>
+          
+          <div className="flex flex-wrap justify-center gap-6 mb-10">
+            {[['Rs.49','Per Week'],['15 min','Claim Payout'],['Zero','Paperwork']].map(([v,l])=>(
+              <div key={l} className="glass-card px-6 py-3 rounded-xl text-center">
+                <div className="font-display font-bold text-xl text-primary">{v}</div>
+                <div className="text-white/50 text-xs mt-1">{l}</div>
+              </div>
+            ))}
+          </div>
+          
+          <div className="flex flex-wrap justify-center gap-4">
+            <button onClick={()=>navigate('onboard')} className="bg-primary text-navy font-bold px-8 py-3 rounded-full hover:bg-primary/90 transition text-base">
+              Get Protected Now →
+            </button>
+            <button onClick={()=>navigate('dashboard')} className="glass-card text-white font-semibold px-8 py-3 rounded-full hover:bg-white/10 transition text-base">
+              View Demo Dashboard
+            </button>
+          </div>
+        </div>
+      </section>
+
+      {/* Zero-Touch Claims */}
+      <section className="py-20 px-6 max-w-6xl mx-auto">
+        <p className="text-primary text-sm font-semibold tracking-widest mb-3 text-center">PROCESS</p>
+        <h2 className="font-display font-bold text-3xl md:text-4xl text-center mb-3">Zero-Touch Claims</h2>
+        <p className="text-white/50 text-center mb-12 max-w-xl mx-auto">From disruption to payout in 15 minutes. No forms. No calls. No waiting.</p>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+          {[
+            ['01','Weather Monitored','Real-time API feeds track rain, heat, AQI across your zone', CloudRainIcon],
+            ['02','Trigger Detected','Parametric thresholds automatically identify disruptions', ZapIcon],
+            ['03','Claim Auto-Filed','AI validates the event — no forms, no calls, no waiting', FileTextIcon],
+            ['04','Instant Payout','Compensation hits your wallet within 15 minutes', WalletIcon],
+          ].map(([num,title,desc,Icon])=>(
+            <div key={num} className="glass-card p-6 rounded-2xl">
+              <div className="text-primary/40 font-display font-bold text-sm mb-4">{num}</div>
+              <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mb-4">
+                <Icon size={22} color="#00D4AA"/>
+              </div>
+              <h3 className="font-display font-semibold text-lg mb-2">{title}</h3>
+              <p className="text-white/50 text-sm leading-relaxed">{desc}</p>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* Built Different */}
+      <section className="py-20 px-6 max-w-6xl mx-auto">
+        <p className="text-primary text-sm font-semibold tracking-widest mb-3 text-center">TECHNOLOGY</p>
+        <h2 className="font-display font-bold text-3xl md:text-4xl text-center mb-12">Built Different</h2>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 max-w-3xl mx-auto">
+          {[
+            ['AI Risk Engine','ML-powered dynamic premium pricing based on your city, zone & season', BrainIcon],
+            ['Hyper-Local Triggers','Zone-level weather monitoring — not city-wide averages', MapPinIcon],
+            ['Smart Fraud Guard','GPS validation, anomaly detection & duplicate claim prevention', ShieldIcon],
+            ['Weekly Pricing','Aligned with gig payout cycles — cancel anytime, no lock-in', WalletIcon],
+          ].map(([title,desc,Icon])=>(
+            <div key={title} className="glass-card p-6 rounded-2xl">
+              <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mb-4">
+                <Icon size={22} color="#00D4AA"/>
+              </div>
+              <h3 className="font-display font-semibold text-lg mb-2">{title}</h3>
+              <p className="text-white/50 text-sm leading-relaxed">{desc}</p>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* Pricing */}
+      <section className="py-20 px-6 max-w-6xl mx-auto">
+        <p className="text-primary text-sm font-semibold tracking-widest mb-3 text-center">SIMPLE PRICING</p>
+        <h2 className="font-display font-bold text-3xl md:text-4xl text-center mb-3">One Plan. Weekly.</h2>
+        <p className="text-white/50 text-center mb-12 max-w-xl mx-auto">No confusing tiers. Pay weekly, cancel anytime. Your premium adjusts automatically based on your zone's risk profile.</p>
+        <div className="max-w-md mx-auto glass-card p-8 rounded-2xl border-primary/30" style={{boxShadow:'0 0 60px rgba(0,212,170,0.1)'}}>
+          <p className="text-white/50 text-xs tracking-widest mb-2">STARTING AT</p>
+          <div className="flex items-baseline gap-1 mb-1">
+            <span className="font-display font-extrabold text-4xl text-primary">Rs.49</span>
+            <span className="text-white/50 text-sm">per week</span>
+          </div>
+          <p className="text-white/40 text-xs mb-6">· dynamic AI pricing</p>
+          <ul className="space-y-3 mb-8">
+            {[
+              'Coverage for rain, heat, AQI, floods & storms',
+              'Automatic claim filing — zero paperwork',
+              '15-minute payout to your UPI/wallet',
+              'AI-adjusted premium based on your zone',
+              'Cancel anytime — no lock-in period'
+            ].map(t=>(
+              <li key={t} className="flex items-start gap-3 text-sm text-white/70">
+                <span className="w-2 h-2 rounded-full bg-primary mt-1.5 flex-shrink-0"></span>{t}
+              </li>
+            ))}
+          </ul>
+          <button onClick={()=>navigate('onboard')} className="w-full bg-primary text-navy font-bold py-3 rounded-full hover:bg-primary/90 transition">
+            Start Protection →
+          </button>
+        </div>
+      </section>
+
+      {/* Footer */}
+      <footer className="border-t border-white/10 py-8 text-center text-white/30 text-sm">
+        StreetGuard · Guidewire DEVTrails 2026 · AI-Powered Parametric Insurance for India's Gig Economy
+      </footer>
+    </div>
+  );
+}
+
+// ─── ONBOARDING ───
+function Onboarding({navigate}) {
+  const [step, setStep] = useState(1);
+  const [platform, setPlatform] = useState('');
+  const [city, setCity] = useState('');
+  const [zone, setZone] = useState('');
+  const [hours, setHours] = useState(8);
+  const [analysisRunning, setAnalysisRunning] = useState(false);
+  const [analysisSteps, setAnalysisSteps] = useState([]);
+  const [analysisDone, setAnalysisDone] = useState(false);
+  const [riskScore, setRiskScore] = useState(0);
+
+  const platforms = [
+    {name:'Zomato',color:'#E23744',Icon:UtensilsIcon},
+    {name:'Swiggy',color:'#FC8019',Icon:BikeIcon},
+    {name:'Zepto',color:'#7B61FF',Icon:ShoppingBagIcon},
+    {name:'Blinkit',color:'#F5C518',Icon:PackageIcon},
+    {name:'Amazon',color:'#FF9900',Icon:TruckIcon},
+  ];
+  const cities = ['Mumbai','Delhi NCR','Bangalore','Hyderabad','Chennai','Pune','Kolkata','Ahmedabad'];
+  const steps = [
+    '● Fetching hyper-local weather history...',
+    '● Analyzing zone flood/waterlogging data...',
+    '● Processing 847 delivery disruption records...',
+    '● Calculating seasonal risk factors...',
+    '● Generating personalized premium...',
+  ];
+
+  const runAnalysis = () => {
+    setAnalysisRunning(true);
+    setAnalysisSteps([]);
+    setAnalysisDone(false);
+    steps.forEach((s,i) => {
+      setTimeout(() => {
+        setAnalysisSteps(prev => [...prev, s]);
+        if (i === steps.length - 1) {
+          setTimeout(() => {
+            setRiskScore(Math.floor(Math.random()*30)+50);
+            setAnalysisDone(true);
+            setAnalysisRunning(false);
+          }, 800);
+        }
+      }, (i+1)*600);
+    });
+  };
+
+  const activate = () => {
+    localStorage.setItem('gigshield_profile', JSON.stringify({platform,city,zone,hours,riskScore,premium:52}));
+    navigate('dashboard');
+  };
+
+  const riskLabel = riskScore < 40 ? 'Low' : riskScore < 70 ? 'Medium' : 'High';
+  const riskColor = riskScore < 40 ? '#00FF88' : riskScore < 70 ? '#FFB800' : '#FF4757';
+
+  return (
+    <div className="min-h-screen bg-navy flex flex-col">
+      {/* Top bar */}
+      <div className="border-b border-white/10 px-6 py-4 flex items-center gap-3">
+        <ShieldIcon size={24} color="#00D4AA"/>
+        <span className="font-display font-bold text-lg">StreetGuard</span>
+      </div>
+      
+      {/* Progress */}
+      <div className="px-6 pt-6 max-w-2xl mx-auto w-full">
+        <div className="flex items-center gap-2 mb-8">
+          {[1,2,3,4].map(s=>(
+            <React.Fragment key={s}>
+              <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold ${step>=s?'bg-primary text-navy':'glass-card text-white/40'}`}>{s}</div>
+              {s<4 && <div className={`flex-1 h-0.5 ${step>s?'bg-primary':'bg-white/10'}`}/>}
+            </React.Fragment>
+          ))}
+        </div>
+        <p className="text-primary text-xs tracking-widest font-semibold mb-2">
+          STEP {String(step).padStart(2,'0')} — {['PLATFORM','LOCATION','AI ANALYSIS','CONFIRMATION'][step-1]}
+        </p>
+      </div>
+
+      <div className="flex-1 px-6 pb-6 max-w-2xl mx-auto w-full">
+        {/* Step 1: Platform */}
+        {step===1 && (
+          <div className="animate-in">
+            <h2 className="font-display font-bold text-2xl mb-2">Which platform do you deliver for?</h2>
+            <p className="text-white/50 text-sm mb-8">Select your primary delivery platform</p>
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+              {platforms.map(({name,color,Icon})=>(
+                <button key={name} onClick={()=>setPlatform(name)}
+                  className={`glass-card p-5 rounded-2xl text-center transition relative ${platform===name?'border-primary':''}`}
+                  style={platform===name?{borderColor:'#00D4AA'}:{}}>
+                  {platform===name && <div className="absolute top-2 right-2 w-5 h-5 bg-primary rounded-full flex items-center justify-center"><CheckIcon size={12} color="#0A0F1E"/></div>}
+                  <div className="w-12 h-12 rounded-full mx-auto mb-3 flex items-center justify-center" style={{backgroundColor:color+'20'}}>
+                    <Icon size={22} color={color}/>
+                  </div>
+                  <span className="text-sm font-medium">{name}</span>
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Step 2: Location */}
+        {step===2 && (
+          <div className="animate-in">
+            <h2 className="font-display font-bold text-2xl mb-2">Where do you operate?</h2>
+            <p className="text-white/50 text-sm mb-8">Your premium is calculated based on hyper-local risk data</p>
+            <label className="text-white/60 text-xs tracking-wider font-semibold block mb-3">CITY</label>
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
+              {cities.map(c=>(
+                <button key={c} onClick={()=>setCity(c)}
+                  className={`glass-card px-4 py-3 rounded-xl text-sm transition ${city===c?'border-primary text-primary':'text-white/70'}`}
+                  style={city===c?{borderColor:'#00D4AA'}:{}}>
+                  {c}
+                </button>
+              ))}
+            </div>
+            {city && (
+              <div className="inline-flex items-center gap-2 glass-card px-3 py-1.5 rounded-full text-xs mb-6">
+                <span className="w-2 h-2 rounded-full" style={{backgroundColor:['Mumbai','Chennai','Kolkata'].includes(city)?'#FF4757':'#FFB800'}}></span>
+                {['Mumbai','Chennai','Kolkata'].includes(city)?'High':'Medium'} Risk Zone
+              </div>
+            )}
+            <label className="text-white/60 text-xs tracking-wider font-semibold block mb-2">ZONE / AREA</label>
+            <input value={zone} onChange={e=>setZone(e.target.value)} placeholder="e.g. Andheri West, Koramangala"
+              className="w-full glass-card bg-transparent px-4 py-3 rounded-xl text-sm text-white placeholder-white/30 outline-none focus:border-primary mb-6" style={{borderColor:zone?'#00D4AA':undefined}}/>
+            <label className="text-white/60 text-xs tracking-wider font-semibold block mb-2">AVG. DAILY WORKING HOURS</label>
+            <input type="number" value={hours} onChange={e=>setHours(e.target.value)} 
+              className="w-full glass-card bg-transparent px-4 py-3 rounded-xl text-sm text-white outline-none focus:border-primary" style={{borderColor:hours?'#00D4AA':undefined}}/>
+          </div>
+        )}
+
+        {/* Step 3: Analysis */}
+        {step===3 && (
+          <div className="animate-in">
+            <h2 className="font-display font-bold text-2xl mb-2">Risk Profile</h2>
+            <p className="text-white/50 text-sm mb-8">AI analyzes 12+ risk parameters for {city||'your city'} to calculate your personalized premium</p>
+            
+            {!analysisDone ? (
+              <div className="glass-card p-8 rounded-2xl text-center">
+                <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-4">
+                  <BrainIcon size={28} color="#00D4AA"/>
+                </div>
+                {analysisSteps.length === 0 && <p className="text-white/50 text-sm mb-6">Click "Run Analysis" to generate your risk profile</p>}
+                {analysisSteps.map((s,i)=>(
+                  <p key={i} className="text-sm text-white/70 text-left mb-2 animate-in" style={{animationDelay:i*100+'ms'}}>{s}</p>
+                ))}
+                {!analysisRunning && analysisSteps.length===0 && (
+                  <button onClick={runAnalysis} className="bg-primary text-navy font-bold px-8 py-3 rounded-full hover:bg-primary/90 transition">
+                    Run Analysis
+                  </button>
+                )}
+                {analysisRunning && (
+                  <div className="mt-4 h-1.5 bg-white/10 rounded-full overflow-hidden">
+                    <div className="h-full bg-primary rounded-full transition-all duration-500" style={{width:(analysisSteps.length/steps.length*100)+'%'}}></div>
+                  </div>
+                )}
+              </div>
+            ) : (
+              <div className="glass-card p-8 rounded-2xl animate-in">
+                <div className="text-center mb-6">
+                  <div className="font-display font-extrabold text-6xl mb-2" style={{color:riskColor}}>{riskScore}</div>
+                  <div className="text-sm font-semibold" style={{color:riskColor}}>{riskLabel} Risk</div>
+                </div>
+                <div className="glass-card p-4 rounded-xl mb-4">
+                  <div className="flex justify-between text-sm mb-1"><span className="text-white/50">Recommended Premium</span><span className="text-primary font-bold">Rs.52/week</span></div>
+                </div>
+                <div className="space-y-2">
+                  <p className="text-xs text-white/40 tracking-wider font-semibold">RISK FACTORS</p>
+                  {['Monsoon exposure — High','Zone AQI trend — Moderate','Historical disruptions — 847 events'].map(f=>(
+                    <div key={f} className="flex items-center gap-2 text-sm text-white/60">
+                      <span className="w-1.5 h-1.5 rounded-full bg-amber"></span>{f}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Step 4: Confirmation */}
+        {step===4 && (
+          <div className="animate-in">
+            <h2 className="font-display font-bold text-2xl mb-2">Policy Summary</h2>
+            <p className="text-white/50 text-sm mb-8">Review your coverage details before activating</p>
+            <div className="glass-card p-6 rounded-2xl mb-6 space-y-4">
+              {[
+                ['Platform', platform||'—'],
+                ['City', city||'—'],
+                ['Zone', zone||'—'],
+                ['Working Hours', hours+' hrs/day'],
+                ['Risk Score', riskScore+' ('+riskLabel+')'],
+                ['Weekly Premium', 'Rs.52'],
+                ['Max Weekly Payout', 'Rs.2,100'],
+                ['Coverage', 'Rain, Heat, AQI, Floods, Strikes'],
+              ].map(([k,v])=>(
+                <div key={k} className="flex justify-between text-sm">
+                  <span className="text-white/50">{k}</span>
+                  <span className="text-white font-medium">{v}</span>
+                </div>
+              ))}
+            </div>
+            <button onClick={activate} className="w-full bg-primary text-navy font-bold py-3 rounded-full hover:bg-primary/90 transition text-base">
+              Activate Coverage →
+            </button>
+          </div>
+        )}
+      </div>
+
+      {/* Bottom Nav */}
+      <div className="border-t border-white/10 px-6 py-4 flex justify-between max-w-2xl mx-auto w-full">
+        <button onClick={()=>step===1?navigate('landing'):setStep(step-1)} className="flex items-center gap-2 text-white/50 hover:text-white text-sm transition">
+          <ArrowLeftIcon size={16}/> {step===1?'Home':'Back'}
+        </button>
+        {step<4 && (
+          <button onClick={()=>{if(step===3&&!analysisDone)return;setStep(step+1)}}
+            disabled={step===1&&!platform || step===2&&!city || step===3&&!analysisDone}
+            className="flex items-center gap-2 bg-primary text-navy font-semibold px-6 py-2 rounded-full text-sm disabled:opacity-40 disabled:cursor-not-allowed hover:bg-primary/90 transition">
+            Continue <ArrowRightIcon size={16}/>
+          </button>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// ─── DASHBOARD ───
+function Dashboard({navigate}) {
+  const [stormActive, setStormActive] = useState(false);
+  const [banners, setBanners] = useState([]);
+  const [claimsFiled, setClaimsFiled] = useState(0);
+  const [stormTriggering, setStormTriggering] = useState(false);
+  const profile = JSON.parse(localStorage.getItem('gigshield_profile')||'{}');
+
+  const triggerStorm = () => {
+    if(stormTriggering) return;
+    setStormTriggering(true);
+    setStormActive(true);
+    setBanners([]);
+    setTimeout(()=>{
+      setBanners(p=>[...p,{type:'red',text:'SEVERE WEATHER ALERT — Heavy rainfall detected: 78mm — Parametric trigger activated'}]);
+    },1000);
+    setTimeout(()=>{
+      setBanners(p=>[...p,{type:'teal',text:'AUTO-CLAIM FILED — Claim #GS-2026-0847 filed automatically — AI verified'}]);
+    },2000);
+    setTimeout(()=>{
+      setBanners(p=>[...p,{type:'amber',text:'PAYOUT PROCESSED — Rs.850 credited to your UPI wallet in 14 minutes',amount:'Rs.850'}]);
+      setClaimsFiled(1);
+      setStormTriggering(false);
+    },3500);
+  };
+
+  const resetStorm = () => {
+    setStormActive(false);
+    setBanners([]);
+    setClaimsFiled(0);
+    setStormTriggering(false);
+  };
+
+  const chartData = [
+    {day:'Tue',earned:920,protected:200},
+    {day:'Wed',earned:1100,protected:180},
+    {day:'Thu',earned:600,protected:450},
+    {day:'Fri',earned:950,protected:200},
+    {day:'Sat',earned:1200,protected:150},
+    {day:'Sun',earned:810,protected:220},
+  ];
+
+  const bannerColors = {red:'border-coral bg-coral/10',teal:'border-primary bg-primary/10',amber:'border-amber bg-amber/10'};
+  const bannerTextColors = {red:'text-coral',teal:'text-primary',amber:'text-amber'};
+
+  return (
+    <div className="min-h-screen bg-navy scrollbar-hide">
+      {/* Top bar */}
+      <div className="border-b border-white/10 px-6 py-3 flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <button onClick={()=>navigate('landing')} className="text-white/50 hover:text-white"><ArrowLeftIcon size={20}/></button>
+          <ShieldIcon size={22} color="#00D4AA"/>
+          <span className="font-display font-bold">StreetGuard</span>
+          <span className="glass-card px-2 py-0.5 rounded text-[10px] text-primary tracking-wider font-semibold">DASHBOARD</span>
+        </div>
+        <div className="flex items-center gap-3">
+          {stormActive && (
+            <button className="flex items-center gap-1.5 bg-coral/20 text-coral px-3 py-1.5 rounded-full text-xs font-semibold">
+              <span className="w-1.5 h-1.5 rounded-full bg-coral"></span>Storm Alert
+            </button>
+          )}
+          <div className="relative">
+            <BellIcon size={20} color="rgba(255,255,255,0.5)"/>
+            <span className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-coral rounded-full border-2 border-navy"></span>
+          </div>
+        </div>
+      </div>
+
+      {/* Banners */}
+      {banners.map((b,i)=>(
+        <div key={i} className={`slide-down border-l-4 ${bannerColors[b.type]} px-6 py-3 flex items-center justify-between`}>
+          <span className={`text-sm font-medium ${bannerTextColors[b.type]}`}>{b.text}</span>
+          {b.amount && <span className="text-amber font-display font-bold text-lg">{b.amount}</span>}
+        </div>
+      ))}
+
+      <div className="max-w-6xl mx-auto px-6 py-6">
+        {/* Header */}
+        <div className="flex flex-wrap items-start justify-between mb-6">
+          <div>
+            <h1 className="font-display font-bold text-2xl mb-1">Good Morning, Rider</h1>
+            <p className="text-white/50 text-sm">{profile.city||'Mumbai'}, {profile.zone||'Andheri West'} — <span className="text-success">Policy Active</span></p>
+          </div>
+          {!stormActive ? (
+            <button onClick={triggerStorm} className="bg-primary text-navy font-semibold px-5 py-2 rounded-full text-sm hover:bg-primary/90 transition mt-2 sm:mt-0">
+              Simulate Storm Trigger
+            </button>
+          ) : (
+            <button onClick={resetStorm} className="glass-card text-white font-semibold px-5 py-2 rounded-full text-sm hover:bg-white/10 transition mt-2 sm:mt-0">
+              Reset Demo
+            </button>
+          )}
+        </div>
+
+        {/* Main grid */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+          {/* Weather Orb */}
+          <div className="glass-card p-6 rounded-2xl flex flex-col items-center justify-center">
+            <div className={`w-32 h-32 rounded-full flex items-center justify-center mb-4 ${stormActive?'orb-storm':'orb-normal'}`}
+              style={{background: stormActive ? 'radial-gradient(circle, rgba(255,71,87,0.2) 0%, transparent 70%)' : 'radial-gradient(circle, rgba(0,255,136,0.15) 0%, transparent 70%)'}}>
+              {stormActive ? <CloudLightningIcon size={48} color="#FF4757"/> : <SunIcon size={48} color="#00FF88"/>}
+            </div>
+            <div className={`text-lg font-display font-bold mb-3 ${stormActive?'text-coral':'text-success'}`}>
+              {stormActive?'Storm Alert':'Clear'}
+            </div>
+            <div className="grid grid-cols-3 gap-4 text-center w-full">
+              {[
+                [stormActive?'26°':'34°','Temp'],
+                [stormActive?'78mm':'2mm','Rain'],
+                [stormActive?'145':'62','AQI'],
+              ].map(([v,l])=>(
+                <div key={l}>
+                  <div className="text-white font-semibold text-sm">{v}</div>
+                  <div className="text-white/40 text-xs">{l}</div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Active Policy */}
+          <div className="glass-card p-6 rounded-2xl">
+            <div className="flex items-center gap-2 mb-4">
+              <span className="text-xs tracking-wider text-white/50 font-semibold">ACTIVE POLICY</span>
+              <span className="w-2 h-2 rounded-full bg-success"></span>
+            </div>
+            <h3 className="font-display font-bold text-lg mb-4">StreetGuard Weekly</h3>
+            <div className="space-y-3 mb-4">
+              {[
+                ['Premium','Rs.52/wk','text-primary'],
+                ['Max Payout','Rs.2,100/wk','text-white'],
+                ['Triggers','5 active','text-white'],
+                ['Renewal','Mar 24, 2026','text-white'],
+              ].map(([k,v,c])=>(
+                <div key={k} className="flex justify-between text-sm">
+                  <span className="text-white/40">{k}</span>
+                  <span className={`font-medium ${c}`}>{v}</span>
+                </div>
+              ))}
+            </div>
+            <div className="flex flex-wrap gap-2">
+              {['Rain','Heat','AQI','Floods','Strikes'].map(t=>(
+                <span key={t} className="glass-card px-3 py-1 rounded-full text-xs text-white/60">{t}</span>
+              ))}
+            </div>
+          </div>
+
+          {/* Stats 2x2 */}
+          <div className="grid grid-cols-2 gap-4">
+            {[
+              ['Rs.5,580','Earnings This Week','+12%','text-success'],
+              [claimsFiled.toString(),'Claims Filed','Auto','text-primary'],
+              ['Rs.3,400','Total Protected','Lifetime','text-primary'],
+              ['67','Risk Score','Moderate','text-amber'],
+            ].map(([val,label,badge,color])=>(
+              <div key={label} className="glass-card p-4 rounded-2xl">
+                <div className={`font-display font-bold text-xl ${color}`}>{val}</div>
+                <div className="text-white/40 text-xs mt-1">{label}</div>
+                <div className="text-white/30 text-[10px] mt-1">{badge}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Chart + Activity */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          {/* Chart */}
+          <div className="lg:col-span-2 glass-card p-6 rounded-2xl">
+            <h3 className="font-display font-semibold text-sm mb-4 text-white/70">WEEKLY EARNINGS</h3>
+            <div style={{width:'100%',height:240}}>
+              <ResponsiveContainer>
+                <AreaChart data={chartData}>
+                  <defs>
+                    <linearGradient id="earnedGrad" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stopColor="#00D4AA" stopOpacity={0.3}/>
+                      <stop offset="100%" stopColor="#00D4AA" stopOpacity={0}/>
+                    </linearGradient>
+                    <linearGradient id="protectedGrad" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stopColor="#FFB800" stopOpacity={0.3}/>
+                      <stop offset="100%" stopColor="#FFB800" stopOpacity={0}/>
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)"/>
+                  <XAxis dataKey="day" stroke="rgba(255,255,255,0.3)" tick={{fontSize:12}}/>
+                  <YAxis stroke="rgba(255,255,255,0.3)" tick={{fontSize:12}}/>
+                  <Tooltip contentStyle={{background:'#1a1f36',border:'1px solid rgba(255,255,255,0.1)',borderRadius:12,color:'#fff',fontSize:12}} itemStyle={{color:'#fff'}}/>
+                  <Area type="monotone" dataKey="earned" stroke="#00D4AA" fill="url(#earnedGrad)" strokeWidth={2} name="Earned"/>
+                  <Area type="monotone" dataKey="protected" stroke="#FFB800" fill="url(#protectedGrad)" strokeWidth={2} name="Protected"/>
+                </AreaChart>
+              </ResponsiveContainer>
+            </div>
+          </div>
+
+          {/* Activity */}
+          <div className="glass-card p-6 rounded-2xl">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="font-display font-semibold text-sm text-white/70">RECENT ACTIVITY</h3>
+              <span className="glass-card px-2 py-0.5 rounded-full text-[10px] text-white/40">3 events</span>
+            </div>
+            <div className="space-y-4 mb-6">
+              {[
+                [CloudRainIcon,'#00D4AA','Heavy rain forecast for tomorrow — coverage active','2h ago'],
+                [WalletIcon,'#FFB800','Weekly premium Rs.52 auto-debited','1d ago'],
+                [WindIcon,'#FF4757','AQI rising in your zone — monitoring','3d ago'],
+              ].map(([Icon,color,text,time],i)=>(
+                <div key={i} className="flex gap-3">
+                  <div className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0" style={{backgroundColor:color+'15'}}>
+                    <Icon size={14} color={color}/>
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-xs text-white/70 leading-relaxed">{text}</p>
+                    <p className="text-[10px] text-white/30 mt-0.5">{time}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+            <p className="text-[10px] text-white/40 tracking-wider font-semibold mb-3">ACTIVE TRIGGERS</p>
+            <div className="flex flex-wrap gap-2">
+              {[
+                ['Rain >60mm','bg-coral/20 text-coral'],
+                ['Temp >45°C','glass-card text-white/60'],
+                ['AQI >300','glass-card text-white/60'],
+                ['Flood Alert','glass-card text-white/60'],
+                ['Strike/Curfew','glass-card text-white/60'],
+              ].map(([t,cls])=>(
+                <span key={t} className={`${cls} px-2.5 py-1 rounded-full text-[10px] font-medium`}>{t}</span>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─── RENDER ───
+ReactDOM.createRoot(document.getElementById('root')).render(<App/>);
+</script>
+</body>
+</html>
