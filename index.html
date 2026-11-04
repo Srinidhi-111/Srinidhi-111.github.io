@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Srinidhi R · Portfolio</title>
+  <meta name="description" content="Srinidhi R, third-year Computer Science student at Bannari Amman Institute of Technology. Projects, hackathons and journey.">
+  <meta name="theme-color" content="#02040A">
+  <link rel="icon" href="images/favicon.svg" type="image/svg+xml">
+
+  <!-- Fonts: Sora for text, JetBrains Mono for small labels -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+  <!-- ===================== HEADER ===================== -->
+  <header class="nav" id="nav">
+    <a href="#home" class="logo" aria-label="Srinidhi R, back to top">SR<span>.</span></a>
+
+    <button class="menu-btn" id="menuBtn" aria-label="Open menu" aria-expanded="false" aria-controls="navLinks">
+      <span></span><span></span>
+    </button>
+
+    <nav id="navLinks" aria-label="Main">
+      <a href="#home" class="active">Home</a>
+      <a href="#about">About</a>
+      <a href="#journey">Journey</a>
+      <a href="#skills">Skills</a>
+      <a href="#projects">Projects</a>
+      <a href="#contact">Contact</a>
+    </nav>
+  </header>
+
+  <!-- ===================== HERO ===================== -->
+  <section class="hero" id="home">
+    <!-- The animated night sky is drawn on this canvas by js/main.js -->
+    <canvas id="sky" aria-hidden="true"></canvas>
+
+    <div class="hero-card">
+      <p class="eyebrow">HELLO, I'M</p>
+      <h1>Srinidhi R</h1>
+      <!-- The words that type out here are set in js/main.js (look for TITLES) -->
+      <p class="typed" aria-live="polite"><span id="typed">Computer Science Student</span><span class="caret" aria-hidden="true"></span></p>
+      <p class="intro">Third-year CSE student at Bannari Amman Institute of Technology. I learn by building real things: a patent-filed analytics tool, a tamper-proof complaint system, and a string of hackathon projects.</p>
+
+      <div class="btn-row">
+        <a href="#projects" class="btn btn-solid">Explore my work</a>
+        <a href="assets/Srinidhi_R_Resume.pdf" class="btn btn-outline" target="_blank" rel="noopener">Résumé</a>
+      </div>
+
+      <div class="socials">
+        <a href="https://github.com/Srinidhi-111" target="_blank" rel="noopener" aria-label="GitHub">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 19c-4.3 1.4-4.3-2.5-6-3m12 5v-3.5c0-1 .1-1.4-.5-2 2.8-.3 5.5-1.4 5.5-6a4.6 4.6 0 0 0-1.3-3.2 4.2 4.2 0 0 0-.1-3.2s-1.1-.3-3.5 1.3a12.3 12.3 0 0 0-6.2 0C6.5 2.8 5.4 3.1 5.4 3.1a4.2 4.2 0 0 0-.1 3.2A4.6 4.6 0 0 0 4 9.5c0 4.6 2.7 5.7 5.5 6-.6.6-.6 1.2-.5 2V21"/></svg>
+        </a>
+        <a href="https://www.linkedin.com/in/srinidhi-rajesh-kanna-b39150339/" target="_blank" rel="noopener" aria-label="LinkedIn">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-4 0v7h-4v-7a6 6 0 0 1 6-6zM2 9h4v12H2zM4 6a2 2 0 1 0 0-4 2 2 0 0 0 0 4z"/></svg>
+        </a>
+        <a href="mailto:srinidhir.cs24@bitsathy.ac.in" aria-label="Email">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 6 9-6"/></svg>
+        </a>
+      </div>
+    </div>
+
+    <p class="wish-hint" id="wishHint" aria-hidden="true">✦ <span class="wish-click">CLICK</span><span class="wish-tap">TAP</span> THE SKY TO MAKE A WISH</p>
+    <a href="#about" class="scroll-hint">SCROLL TO EXPLORE <span aria-hidden="true">↓</span></a>
+  </section>
+
+  <main>
+    <!-- ===================== ABOUT ===================== -->
+    <section class="section" id="about">
+      <h2 class="heading reveal">About <span>Me</span></h2>
+
+      <div class="about-grid">
+        <div class="orb reveal" aria-hidden="true">
+          <div class="orb-glow"></div>
+          <div class="orb-planet">SR</div>
+          <div class="orb-moon"></div>
+        </div>
+
+        <div class="about-text reveal">
+          <h3>I like building things people can actually use.</h3>
+          <p>I enjoy taking an idea from a problem all the way to something deployed and working: the backend, the interface, and the small details that make people trust it. My projects so far include a session replay tool that spots frustrated users, a complaint system whose records can't be quietly rewritten, and an explainable scam detector for Tamil messages.</p>
+          <p>Right now I'm building <strong>Undertow</strong>, a radar that shows which packages in a project could quietly put it at risk, and studying agentic AI on the side.</p>
+
+          <div class="highlights">
+            <div class="highlight">
+              <strong>Patent</strong>
+              <span>application filed for UX Session Replay</span>
+            </div>
+            <div class="highlight">
+              <strong>7th</strong>
+              <span>HACKCACHE'26, national, built solo</span>
+            </div>
+            <div class="highlight">
+              <strong>Diamond</strong>
+              <span>tier, Guidewire DEVTrails 2026</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===================== JOURNEY ===================== -->
+    <section class="section section-alt" id="journey">
+      <h2 class="heading reveal">My <span>Journey</span></h2>
+
+      <div class="journey">
+        <div class="journey-col">
+          <h3 class="reveal">Education</h3>
+          <ol class="timeline">
+            <li class="reveal">
+              <p class="when">2024 – 2028</p>
+              <h4>B.E. Computer Science and Engineering</h4>
+              <p>Bannari Amman Institute of Technology, Sathyamangalam. CGPA 7.3 (up to 3rd semester).</p>
+            </li>
+            <li class="reveal">
+              <p class="when">2024</p>
+              <h4>Higher Secondary (12th)</h4>
+              <p>Vignesh International School. 70.40%.</p>
+            </li>
+            <li class="reveal">
+              <p class="when">2022</p>
+              <h4>Secondary (10th)</h4>
+              <p>My First School International School. 85.04%.</p>
+            </li>
+          </ol>
+        </div>
+
+        <div class="journey-col">
+          <h3 class="reveal">Achievements</h3>
+          <ol class="timeline">
+            <li class="reveal">
+              <p class="when">OCT 2026</p>
+              <h4>7th place, HACKCACHE'26</h4>
+              <p>Built Jawabdehi solo in about 24 hours at a national-level online hackathon.</p>
+            </li>
+            <li class="reveal">
+              <p class="when">2026</p>
+              <h4>Patent application filed</h4>
+              <p>For the UX Session Replay Analytics system, built in a team of three.</p>
+            </li>
+            <li class="reveal">
+              <p class="when">2026</p>
+              <h4>Diamond tier, Guidewire DEVTrails</h4>
+              <p>StreetGuard with Team Code4ce, roughly the top 15% of about 1,800 teams.</p>
+            </li>
+            <li class="reveal">
+              <p class="when">2025</p>
+              <h4>TN Skills, Cloud Computing</h4>
+              <p>Cleared Level 1 and competed in Level 2.</p>
+            </li>
+          </ol>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===================== SKILLS ===================== -->
+    <section class="section" id="skills">
+      <h2 class="heading reveal">My <span>Skills</span></h2>
+      <p class="sub reveal">Grouped by what I have actually used them for.</p>
+
+      <div class="skills">
+        <div class="skill-card reveal">
+          <h3>Frontend</h3>
+          <ul><li>React</li><li>TypeScript</li><li>JavaScript</li><li>Tailwind CSS</li><li>HTML</li><li>CSS</li></ul>
+          <p>Used in every project</p>
+        </div>
+        <div class="skill-card reveal">
+          <h3>Backend &amp; Data</h3>
+          <ul><li>FastAPI</li><li>Python</li><li>PostgreSQL</li><li>Firebase</li><li>WebSockets</li></ul>
+          <p>Used in Session Replay, StreetGuard, Meiyaa</p>
+        </div>
+        <div class="skill-card reveal">
+          <h3>AI</h3>
+          <ul><li>scikit-learn</li><li>sentence-transformers</li><li>LLM APIs</li></ul>
+          <p>Used in StreetGuard, Meiyaa, Jawabdehi</p>
+        </div>
+        <div class="skill-card reveal">
+          <h3>Cloud &amp; Tools</h3>
+          <ul><li>Vercel</li><li>Render</li><li>Azure</li><li>Oracle Cloud</li><li>Git</li><li>Figma</li></ul>
+          <p>Used in every deployed project</p>
+        </div>
+      </div>
+
+      <div class="certs reveal">
+        <span class="certs-label">CERTIFIED</span>
+        <span>Microsoft Azure Fundamentals</span>
+        <span>OCI Foundations Associate</span>
+        <span>OCI AI Foundations Associate</span>
+        <span>Google AI Agents Intensive</span>
+        <span>Salesforce Agentforce</span>
+      </div>
+    </section>
+
+    <!-- ===================== PROJECTS ===================== -->
+    <section class="section section-alt" id="projects">
+      <h2 class="heading reveal">Project <span>Works</span></h2>
+
+      <div class="projects">
+        <!-- To use a real screenshot, replace the file in images/ with the same name -->
+        <article class="project reveal">
+          <div class="shot">
+            <img src="images/session-replay.svg" alt="UX Session Replay Analytics dashboard" loading="lazy">
+            <span class="badge">PATENT FILED · LIVE</span>
+            <div class="shot-links">
+              <a href="https://ux-session-replay-analytics.vercel.app" target="_blank" rel="noopener">Live ↗</a>
+              <a href="https://github.com/Srinidhi-111/UX-Session-Replay-Analytics" target="_blank" rel="noopener">Code ↗</a>
+            </div>
+          </div>
+          <div class="project-body">
+            <h3>UX Session Replay Analytics</h3>
+            <p>Records real user sessions, replays them, and flags rage clicks the moment people get frustrated. I worked on the backend.</p>
+            <p class="stack">React · TypeScript · FastAPI · PostgreSQL · WebSockets</p>
+          </div>
+        </article>
+
+        <article class="project reveal">
+          <div class="shot">
+            <img src="images/jawabdehi.svg" alt="Jawabdehi complaint record" loading="lazy">
+            <span class="badge">7TH · HACKCACHE'26 · SOLO</span>
+            <div class="shot-links">
+              <a href="https://github.com/Srinidhi-111/HACKCACHE-26" target="_blank" rel="noopener">Code ↗</a>
+            </div>
+          </div>
+          <div class="project-body">
+            <h3>Jawabdehi</h3>
+            <p>A tamper-evident complaint record that escalates on its own when a government office stays silent.</p>
+            <p class="stack">React · Web Crypto · Tailwind · Vercel</p>
+          </div>
+        </article>
+
+        <article class="project reveal">
+          <div class="shot">
+            <img src="images/streetguard.svg" alt="StreetGuard worker dashboard" loading="lazy">
+            <span class="badge">DIAMOND TIER · DEVTRAILS</span>
+            <div class="shot-links">
+              <a href="https://github.com/Srinidhi-111/streetguard" target="_blank" rel="noopener">Code ↗</a>
+              <a href="https://docs.google.com/presentation/d/1v2v14qv_H5xEEdcNhWL0Ht9p7J6llaco/edit?usp=sharing&amp;ouid=118022404412997280067&amp;rtpof=true&amp;sd=true" target="_blank" rel="noopener">Pitch deck ↗</a>
+            </div>
+          </div>
+          <div class="project-body">
+            <h3>StreetGuard</h3>
+            <p>Income protection for gig delivery workers, triggered by weather and air-quality disruptions. A hackathon prototype with simulated payouts.</p>
+            <p class="stack">React · FastAPI · scikit-learn · Firebase</p>
+          </div>
+        </article>
+
+        <article class="project reveal">
+          <div class="shot">
+            <img src="images/meiyaa.svg" alt="Meiyaa message check" loading="lazy">
+            <span class="badge">OPENHACK26</span>
+            <div class="shot-links">
+              <a href="https://github.com/Srinidhi-111/OpenHack26" target="_blank" rel="noopener">Code ↗</a>
+            </div>
+          </div>
+          <div class="project-body">
+            <h3>Meiyaa</h3>
+            <p>Explains, phrase by phrase, why a Tamil, Tanglish or English message looks like a scam.</p>
+            <p class="stack">Python · FastAPI · React · sentence-transformers</p>
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <!-- ===================== GITHUB ===================== -->
+    <section class="section" id="github">
+      <h2 class="heading reveal">GitHub <span>Activity</span></h2>
+      <a class="gh-chart reveal" href="https://github.com/Srinidhi-111" target="_blank" rel="noopener">
+        <!-- Live contribution graph from a free public service -->
+        <img src="https://ghchart.rshah.org/7FD3FF/Srinidhi-111" alt="Srinidhi R's GitHub contribution graph" loading="lazy">
+      </a>
+      <p class="sub reveal">Building in public at <a href="https://github.com/Srinidhi-111" target="_blank" rel="noopener">github.com/Srinidhi-111</a></p>
+    </section>
+
+    <!-- ===================== CONTACT ===================== -->
+    <section class="section section-alt" id="contact">
+      <h2 class="heading reveal">Contact <span>Me</span></h2>
+      <p class="sub reveal">Open to internships and entry-level software roles.</p>
+
+      <!-- The form sends through Formspree. Replace YOUR_FORM_ID (see README) -->
+      <form class="contact-form reveal" id="contactForm" action="https://formspree.io/f/YOUR_FORM_ID" method="POST">
+        <label>Your name
+          <input type="text" name="name" required autocomplete="name">
+        </label>
+        <label>Your email
+          <input type="email" name="email" required autocomplete="email">
+        </label>
+        <label class="full">Message
+          <textarea name="message" rows="5" required></textarea>
+        </label>
+        <div class="form-row full">
+          <a href="mailto:srinidhir.cs24@bitsathy.ac.in">srinidhir.cs24@bitsathy.ac.in</a>
+          <button type="submit" class="btn btn-solid">Send message</button>
+        </div>
+        <p class="form-status full" id="formStatus" role="status"></p>
+      </form>
+    </section>
+  </main>
+
+  <footer>
+    <span>© <span id="year">2026</span> Srinidhi R · Coimbatore</span>
+    <a href="#home" class="to-top" aria-label="Back to top">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 15l6-6 6 6"/></svg>
+    </a>
+  </footer>
+
+  <script src="js/main.js"></script>
+</body>
+</html>
